@@ -65,3 +65,16 @@ src/
 - This is a fresh Angular 20 project with minimal customization
 - The default Angular template is still in place (app.component shows Angular logo)
 - Git branch `feat/claude.md` is clean with no uncommitted changes
+
+## Language Settings / 言語設定
+
+**IMPORTANT / 重要**: In this project, Claude Code must ALWAYS respond in Japanese. Technical terms can remain in English.
+
+このプロジェクトでは、Claude Codeは**必ず**日本語で返答してください。技術用語は英語のままで問題ありません。
+
+### Examples / 例:
+
+- ✅ 「componentを作成しました」
+- ✅ 「TypeScriptの型定義を追加しました」
+- ❌ "I've created a new component"
+- ❌ "Added TypeScript type definitions"
