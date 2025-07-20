@@ -55,6 +55,20 @@ src/
 - Tests use `TestBed.configureTestingModule()` with component imports
 - Example test pattern in `app.spec.ts`
 
+### TDD (Test-Driven Development) Approach
+このプロジェクトでは、t-wadaが推奨するTDD手法を採用します：
+
+1. **Red**: 失敗するテストを先に書く
+2. **Green**: そのテストを通すための最小限のコードを書く
+3. **Refactor**: コードをクリーンアップ・改善する
+
+#### TDD実装ルール:
+- 新機能実装前に必ずテストケースを作成
+- テストが失敗することを確認してから実装開始
+- 1つのテストにつき1つの小さな機能に焦点
+- リファクタリング時はテストが通ることを継続確認
+- `describe`, `it`, `expect`を使用したBDD形式でテスト記述
+
 ### Development Patterns
 1. **Component Creation**: Use standalone components with `imports` array
 2. **Routing**: Define routes in `app.routes.ts`
