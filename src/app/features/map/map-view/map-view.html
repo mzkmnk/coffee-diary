@@ -26,8 +26,7 @@
          [style.transform]="'translate(' + panX() + 'px, ' + panY() + 'px) scale(' + zoomLevel() + ')'">
       <!-- SVG地図 -->
       <div class="japan-map-wrapper">
-        <svg class="japan-map" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" [innerHTML]="mapSvgContent()">
-        </svg>
+        <img class="japan-map" src="assets/japan-map.svg" alt="日本地図" />
       </div>
     </div>
   </div>
