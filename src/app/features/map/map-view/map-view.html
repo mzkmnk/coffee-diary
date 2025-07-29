@@ -21,12 +21,20 @@
   </header>
 
   <!-- 地図エリア -->
-  <div class="map-viewport">
+  <div class="map-viewport"
+       (mousedown)="onMouseDown($event)"
+       (mousemove)="onMouseMove($event)"
+       (mouseup)="onMouseUp()"
+       (mouseleave)="onMouseLeave()"
+       (wheel)="onWheel($event)"
+       (touchstart)="onTouchStart($event)"
+       (touchmove)="onTouchMove($event)"
+       (touchend)="onTouchEnd()">
     <div class="map-content" 
          [style.transform]="'translate(' + panX() + 'px, ' + panY() + 'px) scale(' + zoomLevel() + ')'">
       <!-- SVG地図 -->
       <div class="japan-map-wrapper">
-        <img class="japan-map" src="assets/japan-map.svg" alt="日本地図" />
+        <img class="japan-map" src="assets/japan-map.svg" alt="日本地図" draggable="false" />
       </div>
     </div>
   </div>
