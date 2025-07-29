@@ -1,0 +1,302 @@
+:host {
+  display: block;
+  height: 100vh;
+  width: 100vw;
+  position: relative;
+  overflow: hidden;
+}
+
+.map-container {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  background: #f8f9fa;
+}
+
+/* ������������ */
+.status-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: env(safe-area-inset-top, 20px) 20px 16px;
+}
+
+.status-bar-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a1a1a;
+  letter-spacing: -0.01em;
+}
+
+.status-icons {
+  display: flex;
+  gap: 12px;
+}
+
+.icon-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.04);
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.icon-button:hover {
+  background: rgba(0, 0, 0, 0.08);
+  transform: scale(1.05);
+}
+
+.icon-button:active {
+  transform: scale(0.95);
+}
+
+/* 0������� */
+.map-viewport {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  background: #e5e8eb;
+}
+
+.map-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center center;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.japan-map-wrapper {
+  width: 800px;
+  height: 800px;
+  margin-left: -400px;
+  margin-top: -400px;
+}
+
+.japan-map {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.1));
+}
+
+/* SVG地図のスタイリング */
+.japan-map :global(.prefecture) {
+  fill: #f0f4f8;
+  stroke: #e1e8ed;
+  stroke-width: 0.5;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.japan-map :global(.prefecture:hover) {
+  fill: #e3f2fd;
+  stroke: #90caf9;
+  stroke-width: 1.5;
+  filter: brightness(1.05);
+}
+
+.japan-map :global(.prefecture.selected) {
+  fill: #2196f3;
+  stroke: #1976d2;
+  stroke-width: 2;
+}
+
+/* 地域ごとの色分け */
+.japan-map :global(.hokkaido-tohoku) {
+  fill: #f3f4f6;
+}
+
+.japan-map :global(.kanto) {
+  fill: #eff6ff;
+}
+
+.japan-map :global(.chubu) {
+  fill: #f0fdf4;
+}
+
+.japan-map :global(.kansai) {
+  fill: #fef3c7;
+}
+
+.japan-map :global(.chugoku) {
+  fill: #fce7f3;
+}
+
+.japan-map :global(.shikoku) {
+  fill: #ede9fe;
+}
+
+.japan-map :global(.kyusyu-okinawa) {
+  fill: #fee2e2;
+}
+
+/* ���ƣ������ */
+.floating-controls {
+  position: absolute;
+  right: 20px;
+  bottom: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 50;
+}
+
+.floating-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: white;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.floating-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.floating-button:active {
+  transform: translateY(0);
+}
+
+.location-button {
+  background: #007AFF;
+  color: white;
+}
+
+.zoom-controls {
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.zoom-button {
+  width: 48px;
+  height: 44px;
+  border: none;
+  background: white;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.zoom-button:first-child {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.zoom-button:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.zoom-button:active {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* ����� */
+.bottom-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  z-index: 60;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sheet-handle {
+  width: 40px;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+  margin: 12px auto;
+}
+
+.sheet-content {
+  padding: 0 20px 20px;
+}
+
+.sheet-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+
+.cafe-list {
+  min-height: 120px;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  gap: 12px;
+}
+
+.empty-state p {
+  color: #999;
+  font-size: 14px;
+}
+
+/* ������ */
+@media (max-width: 768px) {
+  .status-bar {
+    padding: env(safe-area-inset-top, 20px) 16px 12px;
+  }
+  
+  .app-title {
+    font-size: 16px;
+  }
+  
+  .floating-controls {
+    right: 16px;
+    bottom: 160px;
+  }
+  
+  .sheet-content {
+    padding: 0 16px 16px;
+  }
+}
+
+/* ��������n�� */
+@media (prefers-color-scheme: dark) {
+  /* e�k�����ɒ��Y��n�������� */
+}

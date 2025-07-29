@@ -8,7 +8,7 @@ export const routes: Routes = [
   },
   {
     path: 'map',
-    loadComponent: () => import('./features/map/map.component').then(m => m.MapComponent),
+    loadComponent: () => import('./features/map/map-view/map-view').then(m => m.MapViewComponent),
     title: '地図 - カフェ日記'
   },
   {
