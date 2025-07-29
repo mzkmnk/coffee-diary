@@ -37,7 +37,7 @@ describe('CafeDatabase', () => {
       updatedAt: new Date()
     };
 
-    const id = await db.cafes.add(newCafe);
+    const id = await db.cafes.add(newCafe as any);
     expect(id).toBeGreaterThan(0);
 
     const cafe = await db.cafes.get(id);
@@ -71,7 +71,7 @@ describe('CafeDatabase', () => {
       }
     ];
 
-    await db.cafes.bulkAdd(cafes);
+    await db.cafes.bulkAdd(cafes as any[]);
     const allCafes = await db.cafes.toArray();
     
     expect(allCafes).toHaveLength(2);
@@ -92,7 +92,7 @@ describe('CafeDatabase', () => {
       updatedAt: new Date()
     };
 
-    const id = await db.cafes.add(cafe);
+    const id = await db.cafes.add(cafe as any);
     await db.cafes.update(id, { name: 'Updated Name', rating: 5 });
 
     const updatedCafe = await db.cafes.get(id);
@@ -113,7 +113,7 @@ describe('CafeDatabase', () => {
       updatedAt: new Date()
     };
 
-    const id = await db.cafes.add(cafe);
+    const id = await db.cafes.add(cafe as any);
     await db.cafes.delete(id);
 
     const deletedCafe = await db.cafes.get(id);
@@ -146,7 +146,7 @@ describe('CafeDatabase', () => {
       }
     ];
 
-    await db.cafes.bulkAdd(cafes);
+    await db.cafes.bulkAdd(cafes as any[]);
     const highRatedCafes = await db.cafes.where('rating').aboveOrEqual(4).toArray();
     
     expect(highRatedCafes).toHaveLength(1);

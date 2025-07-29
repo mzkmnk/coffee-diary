@@ -1,4 +1,11 @@
 import { Injectable } from '@angular/core';
+/// <reference path="../../../types/google-maps.d.ts" />
+
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
 
 export interface GeocodeResult {
   lat: number;
@@ -20,7 +27,7 @@ export class GeocodingService {
 
   private ensureGeocoder(): void {
     if (!this.geocoder && this.isGoogleMapsLoaded()) {
-      this.geocoder = new google.maps.Geocoder();
+      this.geocoder = new window.google.maps.Geocoder();
     }
   }
 
@@ -32,7 +39,7 @@ export class GeocodingService {
     }
 
     return new Promise((resolve, reject) => {
-      this.geocoder!.geocode({ address }, (results, status) => {
+      this.geocoder!.geocode({ address }, (results: google.maps.GeocoderResult[] | null, status: google.maps.GeocoderStatus) => {
         if (status === 'OK' && results && results[0]) {
           const location = results[0].geometry.location;
           resolve({
@@ -55,8 +62,8 @@ export class GeocodingService {
     }
 
     return new Promise((resolve, reject) => {
-      const location = new google.maps.LatLng(lat, lng);
-      this.geocoder!.geocode({ location }, (results, status) => {
+      const location = new window.google.maps.LatLng(lat, lng);
+      this.geocoder!.geocode({ location }, (results: google.maps.GeocoderResult[] | null, status: google.maps.GeocoderStatus) => {
         if (status === 'OK' && results && results[0]) {
           resolve(results[0].formatted_address);
         } else {
@@ -93,8 +100,9 @@ export class GeocodingService {
   }
 
   isGoogleMapsLoaded(): boolean {
-    return typeof google !== 'undefined' && 
-           typeof google.maps !== 'undefined' &&
-           typeof google.maps.Geocoder !== 'undefined';
+    return typeof window !== 'undefined' &&
+           typeof window.google !== 'undefined' && 
+           typeof window.google.maps !== 'undefined' &&
+           typeof window.google.maps.Geocoder !== 'undefined';
   }
 }

@@ -31,7 +31,7 @@ describe('GeocodingService', () => {
       };
 
       // window.google.maps.Geocoderのモック
-      (global as any).google = {
+      (window as any).google = {
         maps: {
           Geocoder: vi.fn(() => mockGeocoder)
         }
@@ -58,7 +58,7 @@ describe('GeocodingService', () => {
         })
       };
 
-      (global as any).google = {
+      (window as any).google = {
         maps: {
           Geocoder: vi.fn(() => mockGeocoder)
         }
@@ -68,7 +68,7 @@ describe('GeocodingService', () => {
     });
 
     it('should handle Google Maps API not loaded', async () => {
-      (global as any).google = undefined;
+      (window as any).google = undefined;
 
       await expect(service.geocodeAddress('東京都渋谷区1-1-1')).rejects.toThrow('Google Maps API is not loaded');
     });
@@ -85,7 +85,7 @@ describe('GeocodingService', () => {
         })
       };
 
-      (global as any).google = {
+      (window as any).google = {
         maps: {
           Geocoder: vi.fn(() => mockGeocoder),
           LatLng: vi.fn((lat, lng) => ({ lat, lng }))
@@ -109,7 +109,7 @@ describe('GeocodingService', () => {
         })
       };
 
-      (global as any).google = {
+      (window as any).google = {
         maps: {
           Geocoder: vi.fn(() => mockGeocoder),
           LatLng: vi.fn((lat, lng) => ({ lat, lng }))
@@ -134,7 +134,7 @@ describe('GeocodingService', () => {
         })
       };
 
-      Object.defineProperty(global.navigator, 'geolocation', {
+      Object.defineProperty(window.navigator, 'geolocation', {
         value: mockGeolocation,
         writable: true,
         configurable: true
@@ -159,7 +159,7 @@ describe('GeocodingService', () => {
         })
       };
 
-      Object.defineProperty(global.navigator, 'geolocation', {
+      Object.defineProperty(window.navigator, 'geolocation', {
         value: mockGeolocation,
         writable: true,
         configurable: true
@@ -169,7 +169,7 @@ describe('GeocodingService', () => {
     });
 
     it('should handle browser without geolocation support', async () => {
-      Object.defineProperty(global.navigator, 'geolocation', {
+      Object.defineProperty(window.navigator, 'geolocation', {
         value: undefined,
         writable: true,
         configurable: true
@@ -181,7 +181,7 @@ describe('GeocodingService', () => {
 
   describe('isGoogleMapsLoaded', () => {
     it('should return true when Google Maps is loaded', () => {
-      (global as any).google = {
+      (window as any).google = {
         maps: {
           Geocoder: vi.fn()
         }
@@ -191,7 +191,7 @@ describe('GeocodingService', () => {
     });
 
     it('should return false when Google Maps is not loaded', () => {
-      (global as any).google = undefined;
+      (window as any).google = undefined;
 
       expect(service.isGoogleMapsLoaded()).toBe(false);
     });

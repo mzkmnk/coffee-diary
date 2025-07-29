@@ -4,7 +4,7 @@ import { NetworkService } from './network.service';
 
 describe('NetworkService', () => {
   let service: NetworkService;
-  const originalNavigator = { ...global.navigator };
+  const originalNavigator = { ...window.navigator };
 
   beforeEach(() => {
     service = new NetworkService();
@@ -13,7 +13,7 @@ describe('NetworkService', () => {
   afterEach(() => {
     vi.clearAllMocks();
     // Restore original navigator
-    Object.defineProperty(global, 'navigator', {
+    Object.defineProperty(window, 'navigator', {
       value: originalNavigator,
       writable: true,
       configurable: true
@@ -26,7 +26,7 @@ describe('NetworkService', () => {
 
   describe('isOnline', () => {
     it('should return true when online', () => {
-      Object.defineProperty(global.navigator, 'onLine', {
+      Object.defineProperty(window.navigator, 'onLine', {
         value: true,
         writable: true,
         configurable: true
@@ -36,7 +36,7 @@ describe('NetworkService', () => {
     });
 
     it('should return false when offline', () => {
-      Object.defineProperty(global.navigator, 'onLine', {
+      Object.defineProperty(window.navigator, 'onLine', {
         value: false,
         writable: true,
         configurable: true
@@ -48,7 +48,7 @@ describe('NetworkService', () => {
 
   describe('online$ observable', () => {
     it('should emit initial online status', async () => {
-      Object.defineProperty(global.navigator, 'onLine', {
+      Object.defineProperty(window.navigator, 'onLine', {
         value: true,
         writable: true,
         configurable: true
@@ -92,7 +92,7 @@ describe('NetworkService', () => {
 
   describe('checkConnection', () => {
     it('should return true when online', async () => {
-      Object.defineProperty(global.navigator, 'onLine', {
+      Object.defineProperty(window.navigator, 'onLine', {
         value: true,
         writable: true,
         configurable: true
@@ -103,7 +103,7 @@ describe('NetworkService', () => {
     });
 
     it('should return false when offline', async () => {
-      Object.defineProperty(global.navigator, 'onLine', {
+      Object.defineProperty(window.navigator, 'onLine', {
         value: false,
         writable: true,
         configurable: true
@@ -114,14 +114,14 @@ describe('NetworkService', () => {
     });
 
     it('should try to fetch when online to verify real connection', async () => {
-      Object.defineProperty(global.navigator, 'onLine', {
+      Object.defineProperty(window.navigator, 'onLine', {
         value: true,
         writable: true,
         configurable: true
       });
 
       // Mock fetch to simulate successful connection
-      global.fetch = vi.fn().mockResolvedValue({ ok: true });
+      (window as any).fetch = vi.fn().mockResolvedValue({ ok: true });
 
       const result = await service.checkConnection();
       expect(result).toBe(true);
@@ -133,14 +133,14 @@ describe('NetworkService', () => {
     });
 
     it('should return false when fetch fails', async () => {
-      Object.defineProperty(global.navigator, 'onLine', {
+      Object.defineProperty(window.navigator, 'onLine', {
         value: true,
         writable: true,
         configurable: true
       });
 
       // Mock fetch to simulate failed connection
-      global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+      (window as any).fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
       const result = await service.checkConnection();
       expect(result).toBe(false);
@@ -149,7 +149,7 @@ describe('NetworkService', () => {
 
   describe('waitForConnection', () => {
     it('should resolve immediately when online', async () => {
-      Object.defineProperty(global.navigator, 'onLine', {
+      Object.defineProperty(window.navigator, 'onLine', {
         value: true,
         writable: true,
         configurable: true
@@ -163,7 +163,7 @@ describe('NetworkService', () => {
     });
 
     it('should wait for online event when offline', async () => {
-      Object.defineProperty(global.navigator, 'onLine', {
+      Object.defineProperty(window.navigator, 'onLine', {
         value: false,
         writable: true,
         configurable: true

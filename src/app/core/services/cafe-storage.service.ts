@@ -30,7 +30,7 @@ export class CafeStorageService {
       updatedAt: now
     };
 
-    return await this.db.cafes.add(newCafe);
+    return await this.db.cafes.add(newCafe as Cafe);
   }
 
   async getAllCafes(): Promise<Cafe[]> {

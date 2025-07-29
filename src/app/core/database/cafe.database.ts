@@ -2,7 +2,7 @@ import Dexie, { Table } from 'dexie';
 import type { Cafe } from '../models/cafe.model';
 
 export class CafeDatabase extends Dexie {
-  cafes!: Table<Cafe>;
+  cafes!: Table<Cafe, number>;
 
   constructor() {
     super('CafeDiaryDB');
