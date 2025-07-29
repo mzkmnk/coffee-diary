@@ -83,17 +83,43 @@ src/
 - Tests use `TestBed.configureTestingModule()` with component imports
 - Example test pattern in `app.spec.ts`
 
+### TDD (Test-Driven Development) 実装方針
+このプロジェクトでは、t-wada（和田卓人）氏が推奨するTDD手法を採用します：
+1. **Red-Green-Refactor サイクル**: まずテストを書き（Red）、最小限のコードで通し（Green）、リファクタリング（Refactor）
+2. **テストファースト**: 実装前に必ずテストを書く
+3. **小さなステップ**: 一度に一つのことだけをテストし、段階的に機能を追加
+4. **TODOリスト駆動**: テストすべき項目をTODOリストとして管理
+
 ### Development Patterns
 1. **Component Creation**: Use standalone components with `imports` array
 2. **Routing**: Define routes in `app.routes.ts`
 3. **Services**: Inject using `inject()` function or constructor injection
 4. **Change Detection**: Rely on signals and manual change detection (no Zone.js)
 
+### Environment Variables / 環境変数
+Google Maps APIキーなどの機密情報は以下の方法で管理します：
+
+1. **ローカル開発環境**:
+   - `src/environments/environment.local.ts`ファイルを作成
+   - このファイルは`.gitignore`に含まれているため、gitには追加されません
+   - 例:
+   ```typescript
+   export const environment = {
+     production: false,
+     googleMapsApiKey: 'your-actual-api-key-here'
+   };
+   ```
+
+2. **本番環境**:
+   - ビルド時に環境変数から値を注入
+   - CI/CDパイプラインで設定
+
 ### Important Notes
 - This is a cafe diary PWA project for personal use
 - All data is stored locally using IndexedDB (no cloud sync)
 - Google Maps API key is required for geocoding functionality
 - The app focuses on UX/UI quality and smooth map interactions
+- **プロジェクトタスク管理**: 開発タスクは `.claude/plan/project-plan.md` を参照してください
 
 ### プロジェクト固有の開発ガイドライン
 
@@ -129,3 +155,9 @@ src/
 - ✅ 「TypeScriptの型定義を追加しました」
 - ❌ "I've created a new component"
 - ❌ "Added TypeScript type definitions"
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
