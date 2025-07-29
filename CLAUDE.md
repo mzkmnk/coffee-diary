@@ -83,6 +83,13 @@ src/
 - Tests use `TestBed.configureTestingModule()` with component imports
 - Example test pattern in `app.spec.ts`
 
+### TDD (Test-Driven Development) 実装方針
+このプロジェクトでは、t-wada（和田卓人）氏が推奨するTDD手法を採用します：
+1. **Red-Green-Refactor サイクル**: まずテストを書き（Red）、最小限のコードで通し（Green）、リファクタリング（Refactor）
+2. **テストファースト**: 実装前に必ずテストを書く
+3. **小さなステップ**: 一度に一つのことだけをテストし、段階的に機能を追加
+4. **TODOリスト駆動**: テストすべき項目をTODOリストとして管理
+
 ### Development Patterns
 1. **Component Creation**: Use standalone components with `imports` array
 2. **Routing**: Define routes in `app.routes.ts`
@@ -94,6 +101,7 @@ src/
 - All data is stored locally using IndexedDB (no cloud sync)
 - Google Maps API key is required for geocoding functionality
 - The app focuses on UX/UI quality and smooth map interactions
+- **プロジェクトタスク管理**: 開発タスクは `.claude/plan/project-plan.md` を参照してください
 
 ### プロジェクト固有の開発ガイドライン
 
