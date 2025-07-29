@@ -3,8 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
+    "start": "ng serve --configuration=local",
+    "start:dev": "ng serve",
+    "build": "node scripts/build-env.js && ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -27,6 +28,7 @@
     "@angular/cli": "^20.0.0",
     "@angular/compiler-cli": "^20.0.0",
     "@types/google.maps": "^3.58.1",
+    "dotenv": "^17.2.1",
     "fake-indexeddb": "^6.0.1",
     "jsdom": "26.1.0",
     "typescript": "~5.8.2",

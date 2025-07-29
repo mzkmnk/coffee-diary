@@ -96,6 +96,24 @@ src/
 3. **Services**: Inject using `inject()` function or constructor injection
 4. **Change Detection**: Rely on signals and manual change detection (no Zone.js)
 
+### Environment Variables / 環境変数
+Google Maps APIキーなどの機密情報は以下の方法で管理します：
+
+1. **ローカル開発環境**:
+   - `src/environments/environment.local.ts`ファイルを作成
+   - このファイルは`.gitignore`に含まれているため、gitには追加されません
+   - 例:
+   ```typescript
+   export const environment = {
+     production: false,
+     googleMapsApiKey: 'your-actual-api-key-here'
+   };
+   ```
+
+2. **本番環境**:
+   - ビルド時に環境変数から値を注入
+   - CI/CDパイプラインで設定
+
 ### Important Notes
 - This is a cafe diary PWA project for personal use
 - All data is stored locally using IndexedDB (no cloud sync)
@@ -137,3 +155,9 @@ src/
 - ✅ 「TypeScriptの型定義を追加しました」
 - ❌ "I've created a new component"
 - ❌ "Added TypeScript type definitions"
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
