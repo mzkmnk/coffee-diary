@@ -120,6 +120,7 @@ Google Maps APIキーなどの機密情報は以下の方法で管理します�
 - Google Maps API key is required for geocoding functionality
 - The app focuses on UX/UI quality and smooth map interactions
 - **プロジェクトタスク管理**: 開発タスクは `.claude/plan/project-plan.md` を参照してください
+- **Pull Request作成時の注意**: このプロジェクトでは、すべてのPull Requestは `--draft` フラグを使用してドラフトとして作成してください
 
 ### プロジェクト固有の開発ガイドライン
 
