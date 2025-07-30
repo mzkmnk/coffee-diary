@@ -1,0 +1,158 @@
+<div class="list-container">
+  <!-- Header -->
+  <header class="list-header">
+    <div class="header-content">
+      <div class="header-top">
+        <div>
+          <h1 class="list-title">
+            カフェ一覧
+            @if (cafes.length > 0) {
+              <span class="cafe-count">({{ cafes.length }}件)</span>
+            }
+          </h1>
+        </div>
+        <a routerLink="/cafes/new" class="add-button">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
+          </svg>
+          新しいカフェを追加
+        </a>
+      </div>
+
+      <!-- Search and Filter -->
+      <div class="search-filter-row">
+        <div class="search-wrapper">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+          </svg>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="カフェ名や住所で検索..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+          />
+        </div>
+        
+        <div class="filter-sort-buttons">
+          <button
+            class="icon-button"
+            [class.active]="showFilters"
+            (click)="toggleFilters()"
+            title="フィルター"
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+          <button
+            class="icon-button"
+            (click)="toggleSortOrder()"
+            [title]="sortOrder === 'desc' ? '古い順に並べ替え' : '新しい順に並べ替え'"
+          >
+            @if (sortOrder === 'desc') {
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3z"/>
+              </svg>
+            } @else {
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h5a1 1 0 000-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3z"/>
+              </svg>
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Active Filters -->
+      @if (activeFilters.length > 0) {
+        <div class="filter-tags">
+          @for (filter of activeFilters; track filter) {
+            <span class="filter-tag">
+              {{ getFilterLabel(filter) }}
+              <button (click)="removeFilter(filter)" aria-label="フィルターを削除">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+                  <path d="M4.293 4.293a1 1 0 011.414 0L7 5.586l1.293-1.293a1 1 0 111.414 1.414L8.414 7l1.293 1.293a1 1 0 01-1.414 1.414L7 8.414 5.707 9.707a1 1 0 01-1.414-1.414L5.586 7 4.293 5.707a1 1 0 010-1.414z"/>
+                </svg>
+              </button>
+            </span>
+          }
+        </div>
+      }
+    </div>
+  </header>
+
+  <!-- Cafe List -->
+  <main class="cafe-list">
+    @if (isLoading) {
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+      </div>
+    } @else if (filteredCafes.length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">☕</div>
+        <h2 class="empty-title">
+          @if (cafes.length === 0) {
+            まだカフェが登録されていません
+          } @else {
+            検索結果が見つかりません
+          }
+        </h2>
+        <p class="empty-message">
+          @if (cafes.length === 0) {
+            最初のカフェを登録して、カフェ日記を始めましょう！
+          } @else {
+            検索条件を変更してみてください
+          }
+        </p>
+        @if (cafes.length === 0) {
+          <a routerLink="/cafes/new" class="empty-action">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
+            </svg>
+            カフェを登録する
+          </a>
+        }
+      </div>
+    } @else {
+      <div class="list-grid">
+        @for (cafe of filteredCafes; track cafe.id) {
+          <a [routerLink]="['/cafes', cafe.id]" class="cafe-card">
+            <div class="card-image">
+              ☕
+              <span class="visit-date">{{ formatDate(cafe.visitDate) }}</span>
+            </div>
+            <div class="card-content">
+              <h3 class="cafe-name">{{ cafe.name }}</h3>
+              <p class="cafe-address">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 0a8 8 0 100 16A8 8 0 008 0zM8 2a6 6 0 110 12A6 6 0 018 2zm0 2a3 3 0 00-3 3c0 1.5 3 5 3 5s3-3.5 3-5a3 3 0 00-3-3zm0 2a1 1 0 110 2 1 1 0 010-2z"/>
+                </svg>
+                {{ cafe.address }}
+              </p>
+              <div class="cafe-meta">
+                <div class="cafe-rating">
+                  <span class="rating-stars">{{ getStars(cafe.rating) }}</span>
+                  <span class="rating-value">{{ cafe.rating }}.0</span>
+                </div>
+                <!-- @if (cafe.genre) {
+                  <span class="cafe-genre">{{ getGenreLabel(cafe.genre) }}</span>
+                } -->
+              </div>
+            </div>
+          </a>
+        }
+      </div>
+    }
+  </main>
+</div>
+
+<!-- Filter Modal -->
+@if (showFilters) {
+  <div class="filter-modal" (click)="closeFilters()">
+    <div class="filter-content" (click)="$event.stopPropagation()">
+      <h3>フィルター</h3>
+      <!-- Filter options would go here -->
+      <button (click)="closeFilters()">閉じる</button>
+    </div>
+  </div>
+}

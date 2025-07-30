@@ -1,14 +1,39 @@
-<nav class="navbar">
+<nav class="navbar" role="navigation" aria-label="メインナビゲーション">
   <div class="nav-container">
-    <a routerLink="/" class="nav-brand">☕ カフェ日記</a>
-    <div class="nav-links">
-      <a routerLink="/map" routerLinkActive="active" class="nav-link">地図</a>
-      <a routerLink="/cafes" routerLinkActive="active" class="nav-link">一覧</a>
-      <a routerLink="/cafes/new" routerLinkActive="active" class="nav-link">新規登録</a>
+    <a routerLink="/" class="nav-brand" aria-label="カフェ日記ホーム">
+      <span class="brand-icon">☕</span>
+      <span class="brand-text">カフェ日記</span>
+    </a>
+    <div class="nav-links" role="list">
+      <a routerLink="/map" 
+         routerLinkActive="active" 
+         class="nav-link"
+         role="listitem"
+         [attr.aria-current]="rla.isActive ? 'page' : null"
+         #rla="routerLinkActive">
+        <span class="nav-link-text">地図</span>
+      </a>
+      <a routerLink="/cafes" 
+         routerLinkActive="active" 
+         class="nav-link"
+         role="listitem"
+         [attr.aria-current]="rla2.isActive ? 'page' : null"
+         #rla2="routerLinkActive">
+        <span class="nav-link-text">一覧</span>
+      </a>
+      <a routerLink="/cafes/new" 
+         routerLinkActive="active" 
+         class="nav-link nav-link-primary"
+         role="listitem"
+         [attr.aria-current]="rla3.isActive ? 'page' : null"
+         #rla3="routerLinkActive">
+        <span class="nav-link-icon">+</span>
+        <span class="nav-link-text">新規登録</span>
+      </a>
     </div>
   </div>
 </nav>
 
-<main class="main-content">
+<main class="main-content" role="main">
   <router-outlet />
 </main>

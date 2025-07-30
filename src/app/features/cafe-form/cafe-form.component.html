@@ -1,0 +1,178 @@
+<div class="form-container">
+  <div class="form-wrapper">
+    <header class="form-header">
+      <h1 class="form-title">新しいカフェを登録</h1>
+      <p class="form-subtitle">訪れたカフェの情報を記録しましょう</p>
+    </header>
+
+    <form [formGroup]="cafeForm" (ngSubmit)="onSubmit()" class="form-card">
+      <!-- カフェ名 -->
+      <div class="form-field">
+        <label for="name" class="form-label">
+          カフェ名
+          <span class="form-label-required">*</span>
+        </label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          class="form-input"
+          placeholder="例: スターバックス 渋谷店"
+          [class.error]="isFieldInvalid('name')"
+        />
+        @if (isFieldInvalid('name')) {
+          <div class="form-error">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z"/>
+              <path d="M7.002 11a1 1 0 112 0 1 1 0 01-2 0zM8 3.5a.5.5 0 00-.5.5v4a.5.5 0 001 0V4a.5.5 0 00-.5-.5z"/>
+            </svg>
+            カフェ名を入力してください
+          </div>
+        }
+      </div>
+
+      <!-- 住所 -->
+      <div class="form-field">
+        <label for="address" class="form-label">
+          住所
+          <span class="form-label-required">*</span>
+        </label>
+        <div class="address-search">
+          <input
+            id="address"
+            type="text"
+            formControlName="address"
+            class="form-input address-input"
+            placeholder="例: 東京都渋谷区道玄坂2-3-1"
+            [class.error]="isFieldInvalid('address')"
+          />
+          <button
+            type="button"
+            class="search-button"
+            (click)="searchAddress()"
+            [disabled]="!cafeForm.get('address')?.value || isSearching"
+          >
+            @if (isSearching) {
+              <span class="loading-spinner"></span>
+            } @else {
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 0a8 8 0 100 16A8 8 0 008 0zM8 1.5a6.5 6.5 0 110 13 6.5 6.5 0 010-13z"/>
+                <path d="M8 2.5a.5.5 0 00-.5.5v5.5H5a.5.5 0 000 1h3a.5.5 0 00.5-.5V3a.5.5 0 00-.5-.5z"/>
+              </svg>
+              住所検索
+            }
+          </button>
+        </div>
+        @if (isFieldInvalid('address')) {
+          <div class="form-error">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z"/>
+              <path d="M7.002 11a1 1 0 112 0 1 1 0 01-2 0zM8 3.5a.5.5 0 00-.5.5v4a.5.5 0 001 0V4a.5.5 0 00-.5-.5z"/>
+            </svg>
+            住所を入力してください
+          </div>
+        }
+        @if (cafeForm.get('latitude')?.value && cafeForm.get('longitude')?.value) {
+          <div class="coordinates-display">
+            📍 緯度: {{ cafeForm.get('latitude')?.value }}, 経度: {{ cafeForm.get('longitude')?.value }}
+          </div>
+        }
+      </div>
+
+      <!-- 評価 -->
+      <div class="form-field">
+        <label class="form-label">
+          評価
+          <span class="form-label-required">*</span>
+        </label>
+        <div class="rating-field">
+          <div class="rating-stars">
+            @for (star of [1, 2, 3, 4, 5]; track star) {
+              <button
+                type="button"
+                class="rating-star"
+                [class.active]="cafeForm.get('rating')?.value >= star"
+                (click)="setRating(star)"
+                [attr.aria-label]="star + '星'"
+              >
+                ★
+              </button>
+            }
+          </div>
+          @if (cafeForm.get('rating')?.value) {
+            <span class="rating-value">{{ cafeForm.get('rating')?.value }}点</span>
+          }
+        </div>
+        @if (isFieldInvalid('rating')) {
+          <div class="form-error">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M8 1.5a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM0 8a8 8 0 1116 0A8 8 0 010 8z"/>
+              <path d="M7.002 11a1 1 0 112 0 1 1 0 01-2 0zM8 3.5a.5.5 0 00-.5.5v4a.5.5 0 001 0V4a.5.5 0 00-.5-.5z"/>
+            </svg>
+            評価を選択してください
+          </div>
+        }
+      </div>
+
+      <!-- ジャンル -->
+      <div class="form-field">
+        <label for="genre" class="form-label">ジャンル</label>
+        <div class="form-select-wrapper">
+          <select id="genre" formControlName="genre" class="form-select">
+            <option value="">選択してください</option>
+            <option value="coffee">コーヒー専門店</option>
+            <option value="chain">チェーン店</option>
+            <option value="local">個人経営</option>
+            <option value="specialty">スペシャルティコーヒー</option>
+            <option value="tea">紅茶・日本茶</option>
+            <option value="other">その他</option>
+          </select>
+          <svg class="form-select-arrow" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 01.753 1.659l-4.796 5.48a1 1 0 01-1.506 0z"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- メモ -->
+      <div class="form-field">
+        <label for="notes" class="form-label">メモ</label>
+        <textarea
+          id="notes"
+          formControlName="notes"
+          class="form-textarea"
+          placeholder="雰囲気、味、サービスなど、印象に残ったことを記録しましょう"
+          rows="4"
+        ></textarea>
+      </div>
+
+      <!-- フォームアクション -->
+      <div class="form-actions">
+        <a routerLink="/cafes" class="btn-secondary">
+          キャンセル
+        </a>
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="cafeForm.invalid || isSubmitting"
+        >
+          @if (isSubmitting) {
+            <span class="loading-spinner"></span>
+            保存中...
+          } @else {
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M10.97 4.97a.75.75 0 011.07 1.05l-3.99 4.99a.75.75 0 01-1.08.02L4.324 8.384a.75.75 0 111.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 01.02-.022z"/>
+            </svg>
+            カフェを登録
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 成功メッセージ -->
+@if (showSuccess) {
+  <div class="success-message">
+    ✅ カフェを登録しました！
+  </div>
+}
