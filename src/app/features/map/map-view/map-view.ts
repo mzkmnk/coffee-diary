@@ -1,310 +1,346 @@
-import { Component, signal, OnInit, inject, computed } from '@angular/core';
+import { Component, signal, OnInit, inject, computed, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { CoordinateTransformService } from '../../../core/services/coordinate-transform.service';
+import { GoogleMapsLoaderService } from '../../../core/services/google-maps-loader.service';
 import { CafeStorageService } from '../../../core/services/cafe-storage.service';
-import { MarkerClusteringService, CafeCluster } from '../../../core/services/marker-clustering.service';
 import { Cafe } from '../../../core/models/cafe.model';
 
 @Component({
   selector: 'app-map-view',
   standalone: true,
-  imports: [CommonModule, HttpClientModule],
+  imports: [CommonModule],
   templateUrl: './map-view.html',
   styleUrl: './map-view.css'
 })
-export class MapViewComponent implements OnInit {
-  private http = inject(HttpClient);
-  private sanitizer = inject(DomSanitizer);
-  private coordinateTransform = inject(CoordinateTransformService);
+export class MapViewComponent implements OnInit, AfterViewInit {
+  @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef<HTMLDivElement>;
+  
+  private googleMapsLoader = inject(GoogleMapsLoaderService);
   private cafeStorage = inject(CafeStorageService);
-  private markerClustering = inject(MarkerClusteringService);
   
-  zoomLevel = signal(1);
-  panX = signal(0);
-  panY = signal(0);
+  private map: google.maps.Map | undefined;
+  private markers: google.maps.Marker[] = [];
+  private infoWindow: google.maps.InfoWindow | undefined;
   
-  selectedPrefecture = signal<string | null>(null);
-  mapSvgContent = signal<SafeHtml>('');
   cafes = signal<Cafe[]>([]);
   selectedCafe = signal<Cafe | null>(null);
-  clusters = signal<CafeCluster[]>([]);
+  isMapLoaded = signal(false);
   
-  // クラスタリングを使用するかどうか
-  useClustering = computed(() => this.markerClustering.shouldUseClustering(this.zoomLevel()));
-  
-  // SVGのviewBox情報
-  svgViewBox = signal<{ x: number; y: number; width: number; height: number } | null>(null);
-  
-  Math = Math;
-  
-  // ドラッグ状態管理
-  private isDragging = false;
-  private dragStartX = 0;
-  private dragStartY = 0;
-  private dragStartPanX = 0;
-  private dragStartPanY = 0;
-  
-  // ピンチズーム状態管理
-  private isPinching = false;
-  private lastPinchDistance = 0;
-  
-  // ダブルタップ検出
-  private lastTapTime = 0;
-  private lastTapX = 0;
-  private lastTapY = 0;
+  // ダークモードのモダンなスタイル
+  private mapStyles: google.maps.MapTypeStyle[] = [
+    // 基本的な背景色
+    {
+      elementType: 'geometry',
+      stylers: [{ color: '#1a1a2e' }]
+    },
+    {
+      elementType: 'labels.text.stroke',
+      stylers: [{ color: '#1a1a2e' }]
+    },
+    {
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#8892b0' }]
+    },
+    // 水域
+    {
+      featureType: 'water',
+      elementType: 'geometry',
+      stylers: [{ color: '#0f0f1e' }]
+    },
+    {
+      featureType: 'water',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#4a5568' }]
+    },
+    // 地形
+    {
+      featureType: 'landscape',
+      elementType: 'geometry',
+      stylers: [{ color: '#16213e' }]
+    },
+    {
+      featureType: 'landscape.natural',
+      elementType: 'geometry',
+      stylers: [{ color: '#1e2a3a' }]
+    },
+    // POI（施設）
+    {
+      featureType: 'poi',
+      elementType: 'geometry',
+      stylers: [{ color: '#283046' }]
+    },
+    {
+      featureType: 'poi',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#6b7280' }]
+    },
+    {
+      featureType: 'poi.park',
+      elementType: 'geometry',
+      stylers: [{ color: '#1e3a2a' }]
+    },
+    // 道路
+    {
+      featureType: 'road',
+      elementType: 'geometry',
+      stylers: [{ color: '#2a3447' }]
+    },
+    {
+      featureType: 'road',
+      elementType: 'geometry.stroke',
+      stylers: [{ color: '#1a1a2e' }]
+    },
+    {
+      featureType: 'road',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#9ca3af' }]
+    },
+    {
+      featureType: 'road.highway',
+      elementType: 'geometry',
+      stylers: [{ color: '#374357' }]
+    },
+    {
+      featureType: 'road.highway',
+      elementType: 'geometry.stroke',
+      stylers: [{ color: '#1f2937' }]
+    },
+    // 交通機関
+    {
+      featureType: 'transit',
+      elementType: 'geometry',
+      stylers: [{ color: '#2a3447' }]
+    },
+    {
+      featureType: 'transit.station',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#9ca3af' }]
+    },
+    // 行政区画
+    {
+      featureType: 'administrative',
+      elementType: 'geometry.stroke',
+      stylers: [{ color: '#4a5568' }]
+    },
+    {
+      featureType: 'administrative.locality',
+      elementType: 'labels.text.fill',
+      stylers: [{ color: '#9ca3af' }]
+    },
+    {
+      featureType: 'administrative.province',
+      elementType: 'geometry.stroke',
+      stylers: [{ color: '#4a5568', weight: 1 }]
+    }
+  ];
   
   ngOnInit() {
-    this.loadMapData();
     this.loadCafes();
+  }
+  
+  async ngAfterViewInit() {
+    await this.initializeMap();
+  }
+  
+  private async initializeMap() {
+    try {
+      await this.googleMapsLoader.load();
+      
+      if (!this.mapContainer) {
+        console.error('Map container not found');
+        return;
+      }
+      
+      // 日本の中心座標
+      const japanCenter = { lat: 36.5, lng: 138.0 };
+      
+      const mapOptions: google.maps.MapOptions = {
+        center: japanCenter,
+        zoom: 5,
+        disableDefaultUI: true,  // すべてのデフォルトUIを無効化
+        zoomControl: false,       // ズームコントロールを無効化
+        mapTypeControl: false,    // 地図タイプ切替を無効化
+        scaleControl: false,      // スケール表示を無効化
+        streetViewControl: false, // ストリートビューを無効化
+        rotateControl: false,     // 回転コントロールを無効化
+        fullscreenControl: false, // フルスクリーンボタンを無効化
+        styles: this.mapStyles,
+        gestureHandling: 'greedy', // タッチ操作を即座に反応
+        restriction: {
+          latLngBounds: {
+            north: 46.0,
+            south: 24.0,
+            east: 154.0,
+            west: 122.0
+          },
+          strictBounds: false
+        }
+      };
+      
+      this.map = new google.maps.Map(this.mapContainer.nativeElement, mapOptions);
+      this.infoWindow = new google.maps.InfoWindow();
+      
+      this.isMapLoaded.set(true);
+      this.displayCafes();
+      
+    } catch (error) {
+      console.error('Google Mapsの初期化に失敗:', error);
+    }
   }
   
   private async loadCafes() {
     try {
       const cafes = await this.cafeStorage.getAllCafes();
       this.cafes.set(cafes);
-      this.updateClusters();
+      if (this.isMapLoaded()) {
+        this.displayCafes();
+      }
     } catch (error) {
       console.error('カフェデータの読み込みに失敗:', error);
     }
   }
   
-  // クラスタを更新
-  private updateClusters() {
+  private displayCafes() {
+    if (!this.map) return;
+    
+    // 既存のマーカーをクリア
+    this.clearMarkers();
+    
     const cafes = this.cafes();
-    const clusters = this.markerClustering.clusterCafes(cafes, this.zoomLevel());
-    this.clusters.set(clusters);
-  }
-  
-  // マウスダウンイベント
-  onMouseDown(event: MouseEvent) {
-    this.isDragging = true;
-    this.dragStartX = event.clientX;
-    this.dragStartY = event.clientY;
-    this.dragStartPanX = this.panX();
-    this.dragStartPanY = this.panY();
-    event.preventDefault();
-  }
-  
-  // マウス移動イベント
-  onMouseMove(event: MouseEvent) {
-    if (!this.isDragging) return;
+    const bounds = new google.maps.LatLngBounds();
     
-    const deltaX = event.clientX - this.dragStartX;
-    const deltaY = event.clientY - this.dragStartY;
-    
-    this.panX.set(this.dragStartPanX + deltaX);
-    this.panY.set(this.dragStartPanY + deltaY);
-  }
-  
-  // マウスアップイベント
-  onMouseUp() {
-    this.isDragging = false;
-  }
-  
-  // マウスリーブイベント
-  onMouseLeave() {
-    this.isDragging = false;
-  }
-  
-  // マウスホイールイベント
-  onWheel(event: WheelEvent) {
-    event.preventDefault();
-    
-    const zoomSpeed = 0.001;
-    const delta = event.deltaY * -zoomSpeed;
-    const newZoom = Math.max(0.5, Math.min(5, this.zoomLevel() + delta));
-    
-    // マウス位置を中心にズーム
-    const rect = (event.target as HTMLElement).getBoundingClientRect();
-    const mouseX = event.clientX - rect.left - rect.width / 2;
-    const mouseY = event.clientY - rect.top - rect.height / 2;
-    
-    const scaleDiff = newZoom / this.zoomLevel();
-    
-    this.panX.set(mouseX - (mouseX - this.panX()) * scaleDiff);
-    this.panY.set(mouseY - (mouseY - this.panY()) * scaleDiff);
-    this.zoomLevel.set(newZoom);
-    this.updateClusters();
-  }
-  
-  // タッチ開始イベント
-  onTouchStart(event: TouchEvent) {
-    if (event.touches.length === 1) {
-      // ダブルタップの検出
-      const now = Date.now();
-      const x = event.touches[0].clientX;
-      const y = event.touches[0].clientY;
-      
-      if (now - this.lastTapTime < 300 && 
-          Math.abs(x - this.lastTapX) < 30 && 
-          Math.abs(y - this.lastTapY) < 30) {
-        // ダブルタップズーム
-        this.onDoubleTap(x, y);
-        event.preventDefault();
-        return;
+    cafes.forEach(cafe => {
+      if (cafe.lat && cafe.lng) {
+        const position = { lat: cafe.lat, lng: cafe.lng };
+        
+        const marker = new google.maps.Marker({
+          position,
+          map: this.map,
+          title: cafe.name,
+          icon: {
+            url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+              <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="coffeeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#f97316;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#ea580c;stop-opacity:1" />
+                  </linearGradient>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+                <circle cx="18" cy="18" r="14" fill="url(#coffeeGrad)" stroke="#1a1a2e" stroke-width="2" filter="url(#glow)"/>
+                <text x="18" y="23" text-anchor="middle" font-size="18" fill="white" font-weight="bold">☕</text>
+              </svg>
+            `),
+            scaledSize: new google.maps.Size(36, 36),
+            anchor: new google.maps.Point(18, 18)
+          },
+          animation: google.maps.Animation.DROP
+        });
+        
+        marker.addListener('click', () => {
+          this.showCafeInfo(cafe, marker);
+        });
+        
+        this.markers.push(marker);
+        bounds.extend(position);
       }
-      
-      this.lastTapTime = now;
-      this.lastTapX = x;
-      this.lastTapY = y;
-      
-      this.isDragging = true;
-      this.dragStartX = x;
-      this.dragStartY = y;
-      this.dragStartPanX = this.panX();
-      this.dragStartPanY = this.panY();
-      event.preventDefault();
-    } else if (event.touches.length === 2) {
-      // ピンチズーム開始
-      this.isPinching = true;
-      this.lastPinchDistance = this.getPinchDistance(event.touches);
-      event.preventDefault();
+    });
+    
+    // すべてのマーカーが表示されるようにズーム調整
+    if (cafes.length > 0 && cafes.some(c => c.lat && c.lng)) {
+      this.map.fitBounds(bounds);
     }
   }
   
-  // タッチ移動イベント
-  onTouchMove(event: TouchEvent) {
-    if (event.touches.length === 1 && this.isDragging) {
-      const deltaX = event.touches[0].clientX - this.dragStartX;
-      const deltaY = event.touches[0].clientY - this.dragStartY;
-      
-      this.panX.set(this.dragStartPanX + deltaX);
-      this.panY.set(this.dragStartPanY + deltaY);
-      event.preventDefault();
-    } else if (event.touches.length === 2 && this.isPinching) {
-      // ピンチズーム
-      const currentDistance = this.getPinchDistance(event.touches);
-      const scale = currentDistance / this.lastPinchDistance;
-      
-      const newZoom = Math.max(0.5, Math.min(5, this.zoomLevel() * scale));
-      
-      // ピンチ中心を計算
-      const centerX = (event.touches[0].clientX + event.touches[1].clientX) / 2;
-      const centerY = (event.touches[0].clientY + event.touches[1].clientY) / 2;
-      
-      const rect = (event.target as HTMLElement).getBoundingClientRect();
-      const relativeX = centerX - rect.left - rect.width / 2;
-      const relativeY = centerY - rect.top - rect.height / 2;
-      
-      const scaleDiff = newZoom / this.zoomLevel();
-      
-      this.panX.set(relativeX - (relativeX - this.panX()) * scaleDiff);
-      this.panY.set(relativeY - (relativeY - this.panY()) * scaleDiff);
-      this.zoomLevel.set(newZoom);
-      this.updateClusters();
-      
-      this.lastPinchDistance = currentDistance;
-      event.preventDefault();
-    }
+  private clearMarkers() {
+    this.markers.forEach(marker => {
+      marker.setMap(null);
+    });
+    this.markers = [];
   }
   
-  // タッチ終了イベント
-  onTouchEnd() {
-    this.isDragging = false;
-    this.isPinching = false;
-  }
-  
-  // ピンチ距離の計算
-  private getPinchDistance(touches: TouchList): number {
-    const dx = touches[0].clientX - touches[1].clientX;
-    const dy = touches[0].clientY - touches[1].clientY;
-    return Math.sqrt(dx * dx + dy * dy);
-  }
-  
-  // ダブルタップズーム
-  private onDoubleTap(x: number, y: number) {
-    const currentZoom = this.zoomLevel();
-    const newZoom = currentZoom < 2 ? Math.min(currentZoom * 2, 3) : 1;
+  private showCafeInfo(cafe: Cafe, marker: google.maps.Marker) {
+    if (!this.infoWindow || !this.map) return;
     
-    const rect = (document.querySelector('.map-viewport') as HTMLElement).getBoundingClientRect();
-    const relativeX = x - rect.left - rect.width / 2;
-    const relativeY = y - rect.top - rect.height / 2;
+    const content = `
+      <div style="
+        padding: 16px;
+        min-width: 240px;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      ">
+        <h3 style="
+          margin: 0 0 12px 0;
+          color: #f97316;
+          font-size: 18px;
+          font-weight: 600;
+          letter-spacing: -0.02em;
+        ">${cafe.name}</h3>
+        
+        ${cafe.address ? `
+          <div style="
+            margin: 8px 0;
+            color: #94a3b8;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          ">
+            <span style="color: #f97316;">📍</span>
+            ${cafe.address}
+          </div>
+        ` : ''}
+        
+        ${cafe.rating ? `
+          <div style="
+            margin: 8px 0;
+            color: #fbbf24;
+            font-size: 16px;
+          ">
+            ${'★'.repeat(cafe.rating)}${'☆'.repeat(5 - cafe.rating)}
+          </div>
+        ` : ''}
+        
+        ${cafe.memo ? `
+          <p style="
+            margin: 12px 0 8px 0;
+            color: #cbd5e1;
+            font-size: 14px;
+            line-height: 1.5;
+            border-top: 1px solid #374151;
+            padding-top: 12px;
+          ">${cafe.memo}</p>
+        ` : ''}
+        
+        ${cafe.visitDate ? `
+          <p style="
+            margin: 8px 0 0 0;
+            font-size: 12px;
+            color: #64748b;
+            text-align: right;
+          ">訪問日: ${new Date(cafe.visitDate).toLocaleDateString('ja-JP')}</p>
+        ` : ''}
+      </div>
+    `;
     
-    const scaleDiff = newZoom / currentZoom;
-    
-    this.panX.set(relativeX - (relativeX - this.panX()) * scaleDiff);
-    this.panY.set(relativeY - (relativeY - this.panY()) * scaleDiff);
-    this.zoomLevel.set(newZoom);
-    this.updateClusters();
-  }
-  
-  private loadMapData() {
-    this.http.get('assets/japan-map.svg', { responseType: 'text' })
-      .subscribe({
-        next: (svgContent) => {
-          console.log('SVGコンテンツを取得:', svgContent.substring(0, 200));
-          const parser = new DOMParser();
-          const svgDoc = parser.parseFromString(svgContent, 'image/svg+xml');
-          const svgElement = svgDoc.querySelector('svg');
-          
-          if (svgElement) {
-            // ViewBoxを取得して座標変換サービスに設定
-            const viewBoxAttr = svgElement.getAttribute('viewBox');
-            if (viewBoxAttr) {
-              const [x, y, width, height] = viewBoxAttr.split(' ').map(Number);
-              const viewBox = { x, y, width, height };
-              this.svgViewBox.set(viewBox);
-              this.coordinateTransform.updateSvgViewBox(viewBox);
-            }
-            
-            const innerContent = svgElement.innerHTML;
-            console.log('SVG内部コンテンツ:', innerContent.substring(0, 200));
-            const safeHtml = this.sanitizer.bypassSecurityTrustHtml(innerContent);
-            this.mapSvgContent.set(safeHtml);
-          } else {
-            console.error('SVG要素が見つかりません');
-          }
-        },
-        error: (error) => {
-          console.error('SVGの読み込みに失敗:', error);
-        }
-      });
-  }
-  
-  // カフェマーカーのクリックイベント
-  onCafeClick(cafe: Cafe, event: MouseEvent) {
-    event.stopPropagation();
+    this.infoWindow.setContent(content);
+    this.infoWindow.open(this.map, marker);
     this.selectedCafe.set(cafe);
   }
   
-  // ポップアップを閉じる
-  closePopup() {
-    this.selectedCafe.set(null);
-  }
   
-  // カフェの位置をSVG座標に変換
-  getCafeSvgPosition(cafe: Cafe) {
-    if (!cafe.lat || !cafe.lng) {
-      return null;
-    }
-    return this.coordinateTransform.latLngToSvg({
-      lat: cafe.lat,
-      lng: cafe.lng
-    });
-  }
-  
-  // クラスタのクリックイベント
-  onClusterClick(cluster: CafeCluster, event: MouseEvent) {
-    event.stopPropagation();
+  // 中心を日本に戻す
+  centerToJapan() {
+    if (!this.map) return;
     
-    // クラスタが1つのカフェのみの場合は直接ポップアップを表示
-    if (cluster.cafes.length === 1) {
-      this.selectedCafe.set(cluster.cafes[0]);
-    } else {
-      // 複数のカフェがある場合はズームイン
-      const newZoom = Math.min(this.zoomLevel() * 1.5, 5);
-      
-      // クラスタ中心にパン
-      const rect = (document.querySelector('.map-viewport') as HTMLElement).getBoundingClientRect();
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      
-      this.panX.set(centerX - cluster.center.x * newZoom);
-      this.panY.set(centerY - cluster.center.y * newZoom);
-      this.zoomLevel.set(newZoom);
-      this.updateClusters();
-    }
+    const japanCenter = { lat: 36.5, lng: 138.0 };
+    this.map.setCenter(japanCenter);
+    this.map.setZoom(5);
   }
 }
