@@ -1,9 +1,13 @@
 {
-  "name": "coffee-diary",
-  "short_name": "coffee-diary",
-  "display": "standalone",
+  "name": "Coffee Diary",
+  "short_name": "Coffee",
+  "description": "カフェ訪問記録アプリ",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "theme_color": "#0f0f1e",
+  "background_color": "#0f0f1e",
   "scope": "./",
-  "start_url": "./",
+  "start_url": "./map",
   "icons": [
     {
       "src": "icons/icon-72x72.png",
